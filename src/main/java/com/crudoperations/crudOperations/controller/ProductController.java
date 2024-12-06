@@ -11,10 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
@@ -90,4 +87,74 @@ public class ProductController {
         return "redirect:/products";
     }
 
+
+    @GetMapping("/edit")
+    public String showEditForm(Model model, @RequestParam int id) {
+        try {
+            Product product = productRepository.findById(id).get();
+            model.addAttribute("product", product);
+
+            ProductDto productDto = new ProductDto();
+            productDto.setName(product.getName());
+            productDto.setBrand(product.getBrand());
+            productDto.setDescription(product.getDescription());
+            productDto.setPrice(product.getPrice());
+            productDto.setCategory(product.getCategory());
+            model.addAttribute("productDto", productDto);
+
+        } catch (Exception e) {
+            System.err.println("This error occurs :"+e.getMessage());
+            return "redirect:/products";
+        }
+
+        return "products/edit";
+    }
+
+    @PostMapping("/edit")
+    public String updateProduct(@Valid @ModelAttribute("productDto") @RequestParam int id, ProductDto productDto, BindingResult result, Model model) {
+       try {
+           Product product = productRepository.findById(id).get();
+           model.addAttribute("product", product);
+           if (result.hasErrors()) {
+               return "products/edit";
+           }
+           if (!productDto.getImageFilePath().isEmpty()) {
+               //deleting old image
+               String uploadDirectory = System.getProperty("public/images");
+               Path oldImagePath = Paths.get(uploadDirectory+productDto.getImageFilePath());
+
+               try {
+                   Files.delete(oldImagePath);
+               } catch (Exception e) {
+                   System.err.println("This error occurs :"+e.getMessage());
+               }
+
+               // saving the new image
+               MultipartFile file = productDto.getImageFilePath();
+               Date updateDate = new Date();
+               String storageFileName = updateDate.getTime()+"_" + file.getOriginalFilename();
+
+               try (InputStream inputStream = file.getInputStream()) {
+                   Files.copy(inputStream, Paths.get(uploadDirectory+"_"+storageFileName), StandardCopyOption.REPLACE_EXISTING);
+
+               } catch (Exception e) {
+                   System.err.println("This error occurs :"+e.getMessage());
+               }
+               product.setImageFilePath(storageFileName);
+           }
+
+           product.setName(productDto.getName());
+           product.setBrand(productDto.getBrand());
+           product.setDescription(productDto.getDescription());
+           product.setPrice(productDto.getPrice());
+           product.setCategory(productDto.getCategory());
+
+           productRepository.save(product);
+       } catch (Exception e) {
+           System.err.println("This error occurs :"+e.getMessage());
+       }
+
+
+        return "redirect:/products";
+    }
 }
