@@ -157,4 +157,24 @@ public class ProductController {
 
         return "redirect:/products";
     }
+
+    @GetMapping("/delete")
+    public String deleteProduct(@RequestParam int id) {
+        try {
+            Product product = productRepository.findById(id).get();
+            // before deleting product in database , we must before delete image in public/
+            Path imagePath = Paths.get("public/images/" +product.getImageFilePath());
+            try {
+                Files.delete(imagePath);
+            }catch (Exception e) {
+                System.err.println("This error occurs :"+e.getMessage());
+            }
+
+            //delete the product
+            productRepository.delete(product);
+        } catch (Exception e) {
+            System.err.println("This error occurs :"+e.getMessage());
+        }
+        return "redirect:/products";
+    }
 }
