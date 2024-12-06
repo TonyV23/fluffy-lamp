@@ -31,12 +31,12 @@
             <td th:text="${product.category}"></td>
             <td th:text="${product.price}"></td>
             <td>
-                <img th:src="@{'/images'+${product.imageFilePath}}" width="200" height="200" alt="...">
+                <img th:src="@{'/images/'+${product.imageFilePath}}" width="100" alt="...">
             </td>
             <td th:text="${product.createdAt.toString().substring(0,10)}"></td>
             <td style="white-space: nowrap">
-                <a th:href="@{/products/edit/(id=${product.id})}" class="btn btn-primary btn-sm">Edit</a>
-                <a th:href="@{/products/delete/(id=${product.id})}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this items')">Delete</a>
+                <a th:href="@{/templates/products/edit/(id=${product.id})}" class="btn btn-primary btn-sm">Edit</a>
+                <a th:href="@{/templates/products/delete/(id=${product.id})}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this items')">Delete</a>
             </td>
         </tr>
         </tbody>
